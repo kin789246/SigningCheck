@@ -39,7 +39,7 @@ namespace SigningCheck
                 sb.Append(item.Item1);
                 sb.Append(',');
             }
-            sb.Append("OtherOS,Expiry,Signers{FileName||ValidUsages||SigningDate||ValidFrom||ValidTo}");
+            sb.Append("OtherOS,Expiry,Signers{Name||ValidUsages||SigningDate||ValidFrom||ValidTo}");
             title = sb.ToString();
         }
 

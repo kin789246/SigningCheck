@@ -26,6 +26,7 @@ namespace SigningCheck
         private const string endTagTd = @"</td>";
         private const string tagPre = @"<pre>";
         private const string endTagPre = @"</pre>";
+        private const string tagBr = @"<br />";
 
         private static void addStringToTd(StringBuilder sb, string str)
         {
@@ -47,6 +48,7 @@ namespace SigningCheck
                 Append(tagHead);
             sb.Append(tagStyle);
             sb.Append(@"table, th, td { border-style: solid; border-width: 1px; border-collapse: collapse; }")
+                .Append(@"td { max-width: 25em; word-wrap: break-word; }")
                 .Append(endTagStyle)
                 .Append(endTagHead);
             sb.Append(tagBody);
@@ -81,12 +83,13 @@ namespace SigningCheck
                 }
                 if (Regex.IsMatch(csvData.OtherOS, rgxVbar))
                 {
-                    string str = tagPre;
+                    //string str = tagPre;
+                    string str = string.Empty;
                     foreach (var os in csvData.OtherOS.Split('|'))
                     {
-                        str += os + '\n';
+                        str += os + tagBr;
                     }
-                    str += endTagPre;
+                    //str += endTagPre;
                     addStringToTd(sb, str);
                 }
                 else
@@ -94,12 +97,21 @@ namespace SigningCheck
                     addStringToTd(sb, csvData.OtherOS);
                 }
                 addStringToTd(sb, csvData.TsExpiryDate);
-                string preStr = tagPre;
+                //string preStr = tagPre;
+                string preStr = string.Empty;
                 foreach (var signer in csvData.SigcheckData.Signers)
                 {
-                    preStr += signer + "\n";
+                    //preStr += signer + tagBr;
+                    preStr += signer.Name + " {" + tagBr;
+                    foreach (var vu in signer.ValidUsages)
+                    {
+                        preStr += vu + ", ";
+                    }
+                    preStr += tagBr +
+                        "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + tagBr +
+                        "}" + tagBr;
                 }
-                preStr += endTagPre;
+                //preStr += endTagPre;
                 addStringToTd(sb, preStr);
                 sb.Append(endTagTr);
             }
