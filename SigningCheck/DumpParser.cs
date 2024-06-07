@@ -7,11 +7,11 @@ namespace SigningCheck
 {
     internal static class DumpParser
     {
-        internal static void ParseDump(string raw, List<SigcheckData> sigcheckDatas, string extractPath)
+        internal static void ParseDump(string raw, List<SigcheckData> sigcheckDatas, string drvPath)
         {
             StringReader sr = new StringReader(raw);
             string line = sr.ReadLine();
-            string rgxPath = @"^[a-zA-Z]\:\\.+\.(cat|dll|sys)";
+            string rgxPath = @"^[a-zA-Z]\:\\.+\..{3}";
             string rgxOS = @"OS: *";
             string rgxType = @"SigningType: *";
 
@@ -20,31 +20,32 @@ namespace SigningCheck
             {
                 if (Regex.IsMatch(line, rgxPath))
                 {
-                    sc = new SigcheckData();
-                    sigcheckDatas.Add(sc);
-                    sc.FileName = line;
-                    Match match = Regex.Match(line, extractPath);
-                    if (match.Success)
+                    if (string.Equals(Path.GetExtension(line), ".cat", StringComparison.OrdinalIgnoreCase))
                     {
-                        sc.FileName = line.Substring(match.Index + extractPath.Length);
+                        sc = new SigcheckData();
+                        sigcheckDatas.Add(sc);
+                        sc.FileName = line;
+                        var idx = line.IndexOf(drvPath, StringComparison.OrdinalIgnoreCase);
+                        if (idx != -1)
+                        {
+                            sc.FileName = line.Substring(idx + drvPath.Length);
+                        }
                     }
                 }
                 else if (Regex.IsMatch(line, rgxOS))
                 {
                     string os = "OS: ";
-                    Match match = Regex.Match(line, os);
-                    if (match.Success)
+                    if (line.Contains(os))
                     {
-                        sc.OsSupport = line.Substring(match.Index + os.Length);
+                        sc.OsSupport = line.Substring(line.IndexOf(os) + os.Length);
                     }
                 }
                 else if (Regex.IsMatch(line, rgxType))
                 {
                     string st = "SigningType: ";
-                    Match match = Regex.Match(line, st);
-                    if (match.Success)
+                    if (line.Contains(st))
                     {
-                        sc.SigningType = line.Substring(match.Index + st.Length);
+                        sc.SigningType = line.Substring(line.IndexOf(st) + st.Length);
                     }
                 }
                 line = sr.ReadLine();

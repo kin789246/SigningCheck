@@ -21,11 +21,14 @@ namespace SigningCheck
             {
                 summary = "No file is analyzed";
             }
-            if (data.All(csv => csv.Summary.Equals(data[0].Summary, StringComparison.OrdinalIgnoreCase)))
+            else if (data.All(csv => csv.Summary.Equals(data[0].Summary, StringComparison.OrdinalIgnoreCase)))
             {
                 summary = data[0].Summary;
             }
-            summary = "This driver package has different signed drivers. Please check below detail information.";
+            else
+            {
+                summary = "This driver package has different signed drivers. Please check below detail information.";
+            }
         }
         public void GetTitle(List<(string, bool)> osVersion)
         {

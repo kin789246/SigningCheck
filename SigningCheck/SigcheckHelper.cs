@@ -18,7 +18,6 @@ namespace SigningCheck
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                WindowStyle = ProcessWindowStyle.Minimized,
                 Verb = "runas"
             };
         }

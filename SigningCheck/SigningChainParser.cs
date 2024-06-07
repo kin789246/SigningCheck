@@ -7,10 +7,10 @@ namespace SigningCheck
 {
     internal static class SigningChainParser
     {
-        internal static void ParseSigningChain(string raw, List<SigcheckData> sigcheckDatas, string extractPath)
+        internal static void ParseSigningChain(string raw, List<SigcheckData> sigcheckDatas, string drvPath)
         {
             StringReader sr = new StringReader(raw);
-            string rgxPath = @"^[a-zA-Z]\:\\.+\.(cat|dll|sys)";
+            string rgxPath = @"^[a-zA-Z]\:\\.+\..{3}";
             string rgxDate = @"\d+\/\d+\/\d+";
 
             SigcheckData sc = new SigcheckData();
@@ -21,75 +21,82 @@ namespace SigningCheck
             {
                 if (Regex.IsMatch(line, rgxPath))
                 {
-                    string name = string.Empty;
-                    match = Regex.Match(line, extractPath);
-                    if (match.Success)
+                    line = line.TrimEnd(':');
+                    if (string.Equals(Path.GetExtension(line), ".cat", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(Path.GetExtension(line), ".dll", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(Path.GetExtension(line), ".sys", StringComparison.OrdinalIgnoreCase))
                     {
-                        name = line.Substring(match.Index + extractPath.Length).TrimEnd(':');
-                    }
-                    sc = sigcheckDatas.Find(x => x.FileName == name);
-                    if (sc == null)
-                    {
-                        sc = new SigcheckData();
-                        sigcheckDatas.Add(sc);
-                        sc.FileName = name;
-                    }
-                    line = sr.ReadLine();
-                    while (!line.Contains("MachineType:") && !string.IsNullOrEmpty(line))
-                    {
-                        if (line.Contains("Signing date:"))
+                        string name = string.Empty;
+                        var idx = line.IndexOf(drvPath, StringComparison.OrdinalIgnoreCase);
+                        if (idx != -1)
                         {
-                            signer = new SignerData();
-                            sc.Signers.Add(signer);
-                            match = Regex.Match(line, rgxDate);
-                            if (match.Success)
-                            {
-                                signer.SigningDate = match.ToString();
-                            }
-                            else
-                            {
-                                signer.SigningDate = "n/a";
-                            }
+                            name = line.Substring(idx + drvPath.Length);
                         }
-                        if (line.Trim() == "Signers:" || line.Trim() == "Signer:")
+
+                        sc = sigcheckDatas.Find(x => x.FileName == name);
+                        if (sc == null)
                         {
-                            line = sr.ReadLine();
-                            signer.Name = line.Trim().Replace(',', ' ');
-                            //read 8 lines
-                            for (int i = 0; i < 8; i++)
-                            {
-                                line = sr.ReadLine();
-                                string vu = "Valid Usage:";
-                                if (line.Contains(vu))
-                                {
-                                    foreach (string v in line.TrimStart().Substring(vu.Length).Split(','))
-                                    {
-                                        signer.ValidUsages.Add(v.Trim());
-                                    }
-                                }
-                                else if (line.Contains("Valid from:"))
-                                {
-                                    match = Regex.Match(line, rgxDate);
-                                    if (match.Success)
-                                    {
-                                        signer.ValidFrom = match.ToString();
-                                    }
-                                }
-                                else if (line.Contains("Valid to:"))
-                                {
-                                    match = Regex.Match(line, rgxDate);
-                                    if (match.Success)
-                                    {
-                                        signer.ValidTo = match.ToString();
-                                    }
-                                    if (DateTime.Now.AddMonths(1) < DateTime.Parse(signer.ValidTo))
-                                    {
-                                        signer.Validated = true;
-                                    }
-                                }
-                            }
+                            sc = new SigcheckData();
+                            sigcheckDatas.Add(sc);
+                            sc.FileName = name;
                         }
                         line = sr.ReadLine();
+                        while (!line.Contains("MachineType:") && !string.IsNullOrEmpty(line))
+                        {
+                            if (line.Contains("Signing date:"))
+                            {
+                                signer = new SignerData();
+                                sc.Signers.Add(signer);
+                                match = Regex.Match(line, rgxDate);
+                                if (match.Success)
+                                {
+                                    signer.SigningDate = match.ToString();
+                                }
+                                else
+                                {
+                                    signer.SigningDate = "n/a";
+                                }
+                            }
+                            if (line.Trim() == "Signers:" || line.Trim() == "Signer:")
+                            {
+                                line = sr.ReadLine();
+                                signer.Name = line.Trim().Replace(',', ' ');
+                                //read 8 lines
+                                for (int i = 0; i < 8; i++)
+                                {
+                                    line = sr.ReadLine();
+                                    string vu = "Valid Usage:";
+                                    if (line.Contains(vu))
+                                    {
+                                        foreach (string v in line.TrimStart().Substring(vu.Length).Split(','))
+                                        {
+                                            signer.ValidUsages.Add(v.Trim());
+                                        }
+                                    }
+                                    else if (line.Contains("Valid from:"))
+                                    {
+                                        match = Regex.Match(line, rgxDate);
+                                        if (match.Success)
+                                        {
+                                            signer.ValidFrom = match.ToString();
+                                        }
+                                    }
+                                    else if (line.Contains("Valid to:"))
+                                    {
+                                        match = Regex.Match(line, rgxDate);
+                                        if (match.Success)
+                                        {
+                                            signer.ValidTo = match.ToString();
+                                        }
+                                        if (DateTime.Now.AddMonths(1) < DateTime.Parse(signer.ValidTo))
+                                        {
+                                            signer.Validated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            line = sr.ReadLine();
+                        }
                     }
                 }
                 line = sr.ReadLine();
