@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -113,6 +114,9 @@ namespace SigningCheck
                 output.GenerateOutput();
                 csvOutData.Data.Add(output);
             }
+
+            //sort by file path
+            csvOutData.Data = csvOutData.Data.OrderBy(x => x.FilePath).ToList<CsvData>();
 
             Log(csvOutData.ToCsvString(), fileName + ".csv", false);
             Log(HtmlHelper.ToHtmlTable(csvOutData), fileName + ".html", false);
