@@ -24,14 +24,14 @@ namespace SigningCheck
             List<SigcheckData> sigcheckDatas = new List<SigcheckData>();
             if (Path.GetExtension(inputName) == ".zip")
             {
-                string drvPath = Path.GetFileNameWithoutExtension(inputName);
-                resultName = drvPath + DateTime.Now.ToString("_yyyyMMdd_HHmmss");
-                ZipHelper zh = new ZipHelper(drvPath, inputName, logName);
+                resultName = Path.GetFileNameWithoutExtension(inputName) + DateTime.Now.ToString("_yyyyMMdd_HHmmss");
+                string extractPath = "tmp";
+                ZipHelper zh = new ZipHelper(extractPath, inputName, logName);
                 Log("start extracting " + inputName, logName);
                 zh.ExtractFiles(new List<string> { "cat", "dll", "sys" });
-                await processFiles(drvPath, sigcheckDatas, resultName, logName);
+                await processFiles(extractPath, sigcheckDatas, resultName, logName);
 
-                if (Directory.Exists(drvPath)) Directory.Delete(drvPath, true);
+                if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
             }
             else
             {
