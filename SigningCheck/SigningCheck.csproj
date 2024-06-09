@@ -119,6 +119,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="config\report" />
+    <Content Include="config\main.js" />
     <Content Include="config\style.css" />
     <Content Include="exe\sigcheck.exe" />
   </ItemGroup>

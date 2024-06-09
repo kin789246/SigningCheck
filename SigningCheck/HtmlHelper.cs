@@ -1,17 +1,12 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SigningCheck
 {
     public static class HtmlHelper
     {
-        private const string docType = @"<!DOCTYPE html>";
-        private const string tagHtml = @"<html>";
-        private const string endTagHtml = @"</html>";
-        private const string tagHead = @"<head>";
-        private const string endTagHead = @"</head>";
-        private const string tagStyle = @"<style>";
-        private const string endTagStyle = @"</style>";
         private const string tagBody = @"<body>";
         private const string endTagBody = @"</body>";
         private const string tagH1 = @"<h1>";
@@ -24,8 +19,6 @@ namespace SigningCheck
         private const string endTagTr = @"</tr>";
         private const string tagTd = @"<td>";
         private const string endTagTd = @"</td>";
-        private const string tagPre = @"<pre>";
-        private const string endTagPre = @"</pre>";
         private const string tagBr = @"<br />";
 
         private static void addStringToTd(StringBuilder sb, string str)
@@ -40,18 +33,9 @@ namespace SigningCheck
             if (support) { addStringToTd(sb, "O"); }
             else { addStringToTd(sb, ""); }
         }
-        public static string ToHtmlTable(CsvOutData data)
+        private static string makeTable(CsvOutData data)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(docType).
-                Append(tagHtml).
-                Append(tagHead);
-            sb.Append(tagStyle);
-            sb.Append(@"table, th, td { border-style: solid; border-width: 1px; border-collapse: collapse; }")
-                .Append(@"td { max-width: 25em; word-wrap: break-word; }")
-                .Append(endTagStyle)
-                .Append(endTagHead);
-            sb.Append(tagBody);
             sb.Append(tagH1).Append(data.Summary).Append(endTagH1);
 
             //table part
@@ -83,13 +67,11 @@ namespace SigningCheck
                 }
                 if (Regex.IsMatch(csvData.OtherOS, rgxVbar))
                 {
-                    //string str = tagPre;
                     string str = string.Empty;
                     foreach (var os in csvData.OtherOS.Split('|'))
                     {
                         str += os + tagBr;
                     }
-                    //str += endTagPre;
                     addStringToTd(sb, str);
                 }
                 else
@@ -97,7 +79,6 @@ namespace SigningCheck
                     addStringToTd(sb, csvData.OtherOS);
                 }
                 addStringToTd(sb, csvData.TsExpiryDate);
-                //string preStr = tagPre;
                 string preStr = string.Empty;
                 foreach (var signer in csvData.SigcheckData.Signers)
                 {
@@ -111,14 +92,39 @@ namespace SigningCheck
                         "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + tagBr +
                         "}" + tagBr;
                 }
-                //preStr += endTagPre;
                 addStringToTd(sb, preStr);
                 sb.Append(endTagTr);
             }
             sb.Append(endTagTable);
+            return sb.ToString();
 
-            sb.Append(endTagBody)
-                .Append(endTagHtml);
+        }
+        public static string ToHtmlTable(CsvOutData data)
+        {
+            StringBuilder sb = new StringBuilder();
+            string reportT = "config\\report";
+            using (StreamReader sr = new StreamReader(reportT))
+            {
+                try
+                {
+                    string line = sr.ReadLine();
+                    while (line != null)
+                    {
+                        sb.Append(line);
+                        if (line.Trim().Equals(tagBody, StringComparison.OrdinalIgnoreCase))
+                        {
+                            line = sr.ReadLine();
+                            sb.Append(makeTable(data));
+                        }
+                        line = sr.ReadLine();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+            }
+
             return sb.ToString();
         }
     }

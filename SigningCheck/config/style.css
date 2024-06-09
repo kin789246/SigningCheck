@@ -1,1 +1,12 @@
-﻿
+﻿table, th, td
+{
+    border-style: solid;
+    border-width: 1px;
+    border-collapse: collapse;
+}
+
+td 
+{ 
+    max-width: 25em; 
+    word-wrap: break-word;
+}

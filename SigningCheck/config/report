@@ -1,0 +1,12 @@
+﻿<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Signing Check Report</title>
+    <link href="../config/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <script src="../config/main.js"></script>
+  </body>
+</html>
