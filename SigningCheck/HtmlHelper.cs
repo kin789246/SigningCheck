@@ -113,7 +113,6 @@ namespace SigningCheck
                         sb.Append(line);
                         if (line.Trim().Equals(tagBody, StringComparison.OrdinalIgnoreCase))
                         {
-                            line = sr.ReadLine();
                             sb.Append(makeTable(data));
                         }
                         line = sr.ReadLine();
