@@ -55,6 +55,7 @@ namespace SigningCheck
         }
         private async static Task processFiles(string drvPath, List<SigcheckData> sigcheckDatas, string resultName, string logName)
         {
+            drvPath = Path.GetFullPath(drvPath);
             if (Directory.Exists(drvPath))
             {
                 Log("start parsing", logName);

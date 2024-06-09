@@ -26,19 +26,18 @@ namespace SigningCheck
                         string.Equals(Path.GetExtension(line), ".dll", StringComparison.OrdinalIgnoreCase) ||
                         string.Equals(Path.GetExtension(line), ".sys", StringComparison.OrdinalIgnoreCase))
                     {
-                        string name = string.Empty;
                         var idx = line.IndexOf(drvPath, StringComparison.OrdinalIgnoreCase);
                         if (idx != -1)
                         {
-                            name = line.Substring(idx + drvPath.Length);
+                            line = line.Substring(idx + drvPath.Length);
                         }
 
-                        sc = sigcheckDatas.Find(x => x.FileName == name);
+                        sc = sigcheckDatas.Find(x => x.FileName == line);
                         if (sc == null)
                         {
                             sc = new SigcheckData();
                             sigcheckDatas.Add(sc);
-                            sc.FileName = name;
+                            sc.FileName = line;
                         }
                         line = sr.ReadLine();
                         while (!line.Contains("MachineType:") && !string.IsNullOrEmpty(line))
