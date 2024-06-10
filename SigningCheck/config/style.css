@@ -4,9 +4,9 @@
     border-width: 1px;
     border-collapse: collapse;
 }
-
 td 
 { 
     max-width: 25em; 
+    min-width: 4em;
     word-wrap: break-word;
 }
