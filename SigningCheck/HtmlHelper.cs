@@ -20,6 +20,11 @@ namespace SigningCheck
         private const string tagTd = @"<td>";
         private const string endTagTd = @"</td>";
         private const string tagBr = @"<br />";
+        private const string tagStyle = @"<style>";
+        private const string tagScript = @"<script>";
+
+        private const string styleName = "config\\style.css";
+        private const string scriptName = "config\\main.js";
 
         private static void addStringToTd(StringBuilder sb, string str)
         {
@@ -99,6 +104,15 @@ namespace SigningCheck
             return sb.ToString();
 
         }
+        private static string readFrom(string name)
+        {
+            StringBuilder sb = new StringBuilder();
+            using (StreamReader sr = new StreamReader(name))
+            {
+                sb.Append(sr.ReadToEnd());
+            }
+            return sb.ToString();
+        }
         public static string ToHtmlTable(CsvOutData data)
         {
             StringBuilder sb = new StringBuilder();
@@ -111,10 +125,19 @@ namespace SigningCheck
                     while (line != null)
                     {
                         sb.Append(line);
+                        if (line.Trim().Equals(tagStyle, StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append(readFrom(styleName));
+                        }
                         if (line.Trim().Equals(tagBody, StringComparison.OrdinalIgnoreCase))
                         {
                             sb.Append(makeTable(data));
                         }
+                        if (line.Trim().Equals(tagScript, StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append(readFrom(scriptName));
+                        }
+                        
                         line = sr.ReadLine();
                     }
                 }

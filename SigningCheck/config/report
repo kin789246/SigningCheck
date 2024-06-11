@@ -4,9 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Signing Check Report</title>
-    <link href="../config/style.css" rel="stylesheet" />
+    <style>
+    </style>
   </head>
   <body>
-    <script src="../config/main.js"></script>
+    <script>
+    </script>
   </body>
 </html>
