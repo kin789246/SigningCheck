@@ -139,7 +139,14 @@ namespace SigningCheck
                         )
                     {
                         testSigning = true;
-                        tsExpiryDate = signer.ValidTo;
+                        if (string.IsNullOrEmpty(tsExpiryDate))
+                        {
+                            tsExpiryDate = signer.ValidTo;
+                        }
+                        else if (DateTime.Parse(tsExpiryDate) > DateTime.Parse(signer.ValidTo))
+                        {
+                            tsExpiryDate = signer.ValidTo;
+                        }
                     }
                     else if (vusage.Exists(x => x.Equals(vuWHQL, StringComparison.OrdinalIgnoreCase)))
                     {
