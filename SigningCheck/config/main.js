@@ -14,37 +14,6 @@ function removeAllChildren(element) {
         element.removeChild(element.firstChild);
     }
 }
-function updateFilter() {
-    //get unique value of Name and Summary
-    let uniqueName = new Set();
-    let uniqueSummary = new Set();
-    const tables = document.getElementsByTagName("table");
-    const rows = tables[0].querySelectorAll("tr");
-    for (let i = 1; i < rows.length; i++) {
-        if (rows[i].style.display == "none") {
-            continue;
-        }
-        const columns = rows[i].querySelectorAll("td");
-        //Name
-        uniqueName.add(columns[1].innerHTML.split('.').pop());
-        //Summary
-        uniqueSummary.add(columns[2].innerHTML);
-    }
-
-    //add options to Name and Summary selectors
-    const selectName = document.getElementById("selName");
-    const selectSummary = document.getElementById("selSummary");
-    let tmpName = selectName.value;
-    let tmpSummary = selectSummary.value;
-    removeAllChildren(selectName);
-    addOption(selectName, "all");
-    removeAllChildren(selectSummary);
-    addOption(selectSummary, "all");
-    addUniqueValue(selectName, uniqueName);
-    addUniqueValue(selectSummary, uniqueSummary);
-    selectName.value = tmpName;
-    selectSummary.value = tmpSummary;
-}
 function filterRows() {
     const tables = document.getElementsByTagName("table");
     const rows = tables[0].querySelectorAll("tr");
@@ -76,7 +45,29 @@ function filterRows() {
             rows[i].style.display = "none";
         }
     }
-    updateFilter();
+}
+function setUniqueOptions() {
+    //get unique value of Name and Summary
+    let uniqueName = new Set();
+    let uniqueSummary = new Set();
+    const tables = document.getElementsByTagName("table");
+    const rows = tables[0].querySelectorAll("tr");
+    for (let i = 1; i < rows.length; i++) {
+        if (rows[i].style.display == "none") {
+            continue;
+        }
+        const columns = rows[i].querySelectorAll("td");
+        //Name
+        uniqueName.add(columns[1].innerHTML.split('.').pop());
+        //Summary
+        uniqueSummary.add(columns[2].innerHTML);
+    }
+
+    //add options to Name and Summary selectors
+    const selectName = document.getElementById("selName");
+    const selectSummary = document.getElementById("selSummary");
+    addUniqueValue(selectName, uniqueName);
+    addUniqueValue(selectSummary, uniqueSummary);
 }
 function DoFilter() {
     const tables = document.getElementsByTagName("table");
@@ -99,7 +90,7 @@ function DoFilter() {
             addOption(select, "all");
         }
     }
-    updateFilter();
+    setUniqueOptions();
 }
 
 DoFilter();

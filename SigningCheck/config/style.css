@@ -2,6 +2,11 @@
     font-family: "Consolas";
 }
 
+table {
+    table-layout: fixed;
+    min-width: 100%;
+}
+
 table, tr, td, th {
     border-style: solid;
     border-width: 1px;
@@ -13,6 +18,14 @@ th, td {
     padding: 0.25em 0.5em 0.25em 0.5em;
     vertical-align: middle;
     word-wrap: break-word;
+}
+
+td:nth-of-type(4) {
+  min-width: 15em;
+}
+
+select {
+  max-width: 6em;
 }
 
 th {
@@ -29,12 +42,4 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
     background-color: #fff;
-}
-
-tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-tr:nth-child(odd) {
-    background-color: rgba(255, 255, 255, 0.05);
 }
