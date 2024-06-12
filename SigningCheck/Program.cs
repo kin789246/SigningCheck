@@ -12,7 +12,7 @@ namespace SigningCheck
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine(Version);
+            Console.WriteLine(Version + " by Kin|Jiaching");
             if (args.Length != 1)
             {
                 Console.WriteLine("need zip file name or directory path");
@@ -20,6 +20,7 @@ namespace SigningCheck
             }
             string inputName = args[0];
             string logName = "signDrvCheck" + DateTime.Now.ToString("_yyyyMMdd_HHmmss") + ".log";
+            Log("### "+ Version + " ###", logName);
             string resultName;
             List<SigcheckData> sigcheckDatas = new List<SigcheckData>();
             if (Path.GetExtension(inputName) == ".zip")
@@ -99,7 +100,7 @@ namespace SigningCheck
             {
                 Assembly asm = Assembly.GetExecutingAssembly();
                 AssemblyName asmName = asm.GetName();
-                return String.Format("{0} v{1} by Kin|Jiaching", asmName.Name, asmName.Version.ToString());
+                return String.Format("{0} v{1}", asmName.Name, asmName.Version.ToString());
             }
         }
         private static void generateCSV(string fileName, List<SigcheckData> sigcheckDatas)
