@@ -22,6 +22,7 @@ th, td {
 
 td:nth-of-type(4) {
   min-width: 15em;
+  max-width: 20em;
 }
 
 select {
