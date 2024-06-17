@@ -94,7 +94,6 @@ function DoFilter() {
     }
     setUniqueOptions();
     addClassForCols("sticky", 3);
-    updateStickyColumns();
 }
 function updateStickyColumns() {
     const rows = document.querySelectorAll('tr');
