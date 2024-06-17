@@ -5,7 +5,7 @@
     select.appendChild(opt);
 }
 function addUniqueValue(select, uniqueSet) {
-    uniqueSet.values().forEach((n) => {
+    uniqueSet.forEach((n) => {
         addOption(select, n);
     });
 }
@@ -78,6 +78,7 @@ function DoFilter() {
         if (head.innerHTML === "Name") {
             let select = document.createElement("select");
             select.setAttribute("id", "selName");
+            select.setAttribute("title", "selName");
             select.addEventListener("change", filterRows);
             head.appendChild(select);
             addOption(select, "all");
@@ -85,12 +86,50 @@ function DoFilter() {
         if (head.innerHTML === "Summary") {
             let select = document.createElement("select");
             select.setAttribute("id", "selSummary");
+            select.setAttribute("title", "selSummary");
             select.addEventListener("change", filterRows);
             head.appendChild(select);
             addOption(select, "all");
         }
     }
     setUniqueOptions();
+    addClassForCols("sticky", 3);
+    updateStickyColumns();
 }
+function updateStickyColumns() {
+    const rows = document.querySelectorAll('tr');
+    rows.forEach(row => {
+        let leftOffset = 0;
+        const cells = row.querySelectorAll('.sticky');
+        cells.forEach(cell => {
+            cell.style.left = leftOffset + 'px';
+            leftOffset += Math.floor(cell.getBoundingClientRect().width) - 0.5;
+        });
+    });
+}
+function addClassForCols(c, nCol) {
+    const rows = document.querySelectorAll('tr');
+    rows.forEach(tr => {
+        for (let i = 0; i < nCol; i++) {
+            tr.cells[i].className = c;
+        }
+    });
+}
+function observeColumnChanges() {
+    const table = document.querySelector('table');
+    const columns = table.querySelectorAll('th');
 
-DoFilter();
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            updateStickyColumns();
+        }
+    });
+
+    columns.forEach(column => {
+        resizeObserver.observe(column);
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    observeColumnChanges();
+    DoFilter();
+});

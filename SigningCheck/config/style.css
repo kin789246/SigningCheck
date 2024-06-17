@@ -20,19 +20,15 @@ th, td {
     word-wrap: break-word;
 }
 
-td:nth-of-type(4) {
-  min-width: 15em;
-  max-width: 20em;
-}
-
-select {
-  max-width: 6em;
-}
-
-th {
+tr:nth-child(1) {
     position: sticky;
     top: 0;
     z-index: 1;
+    background-color: #666;
+    color: #fff;
+}
+
+th {
     background-color: #666;
     color: #fff;
 }
@@ -43,4 +39,25 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
     background-color: #fff;
+}
+
+td:nth-of-type(4) {
+    min-width: 15em;
+    max-width: 20em;
+}
+
+select {
+    max-width: 6em;
+}
+
+th.sticky {
+    position: sticky;
+    background-color: #666;
+    color: #fff;
+}
+
+td.sticky {
+    position: sticky;
+    background-color: inherit;
+    color: inherit;
 }
