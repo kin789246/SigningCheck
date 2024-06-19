@@ -27,13 +27,13 @@ namespace SigningCheck
             }
             else
             {
-                summary = "This driver package has different signed drivers. Please check below detail information.";
+                summary = "Multiple Signed";
             }
         }
         public void GetTitle(List<(string, bool)> osVersion)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("Name,Summary,Path,PreProd,Attestation,TestSigning,WHQL,");
+            sb.Append("Name,Summary,Path,PRE,ATT,TS,WHQL,");
             foreach (var item in osVersion)
             {
                 sb.Append(item.Item1);
@@ -195,7 +195,7 @@ namespace SigningCheck
             }
             if (!whql && !testSigning && !attestation)
             {
-                summBuilder.Append("No signed + ");
+                summBuilder.Append("Not signed + ");
             }
 
             summary = summBuilder.ToString().TrimEnd([ ' ', '+' ]);
