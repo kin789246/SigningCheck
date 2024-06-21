@@ -1,26 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace SigningCheck
 {
-    class SigcheckHelper
+    class SigcheckHelper : ExeHelper
     {
-        private StringBuilder outputlog;
-        private ProcessStartInfo startInfo;
-        public SigcheckHelper()
-        {
-            outputlog = new StringBuilder();
-            startInfo = new ProcessStartInfo
-            {
-                FileName = "exe\\sigcheck.exe",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                Verb = "runas"
-            };
-        }
+        public SigcheckHelper() : base("exe\\sigcheck.exe") { }
 
         public Task<string> DumpContent(string fileName)
         {
@@ -52,35 +37,6 @@ namespace SigningCheck
 
                 return outputlog.ToString();
             });
-        }
-
-        private void ExecuteProc(Process process)
-        {
-            process.Start();
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.ErrorDataReceived += Process_ErrorDataReceived;
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-            process.Close();
-        }
-
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Console.Error.WriteLine(e.Data);
-            return;
-        }
-
-        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                lock (outputlog)
-                {
-                    outputlog.Append(e.Data).AppendLine();
-                }
-            }
         }
     }
 }

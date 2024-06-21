@@ -9,6 +9,7 @@ namespace SigningCheck
         {
             string logDir = "logs";
             string logFullPath = Path.Combine(logDir, logName); 
+            logDir = Path.GetDirectoryName(logFullPath);
             if (!Directory.Exists(logDir))
             {
                 Directory.CreateDirectory(logDir);

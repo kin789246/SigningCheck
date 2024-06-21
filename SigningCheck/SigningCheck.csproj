@@ -87,16 +87,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExeHelper.cs" />
     <Compile Include="CsvData.cs" />
     <Compile Include="DumpParser.cs" />
+    <Compile Include="ExpandHelper.cs" />
     <Compile Include="HtmlHelper.cs" />
     <Compile Include="LogWriter.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SigcheckData.cs" />
     <Compile Include="SigcheckHelper.cs" />
     <Compile Include="SigningChainParser.cs" />
-    <Compile Include="SigntoolHelper.cs" />
     <Compile Include="ZipHelper.cs" />
   </ItemGroup>
   <ItemGroup>

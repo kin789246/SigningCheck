@@ -3,56 +3,61 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SigningCheck
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        private static string logName;
+        private static Options opts;
+        static async Task<int> Main(string[] args)
         {
             Console.WriteLine(Version + " by Kin|Jiaching");
-            if (args.Length != 1)
-            {
-                Console.WriteLine("need zip file name or directory path");
-                return;
-            }
-            string inputName = args[0];
-            string logName = "signDrvCheck" + DateTime.Now.ToString("_yyyyMMdd_HHmmss") + ".log";
-            Log("### "+ Version + " ###", logName);
-            string resultName;
+            opts = parseParameter(args);
+            Log("### " + Version + " ###", logName);
             List<SigcheckData> sigcheckDatas = new List<SigcheckData>();
-            if (Path.GetExtension(inputName) == ".zip")
+            if (opts.IsZip)
             {
-                resultName = Path.GetFileNameWithoutExtension(inputName) + DateTime.Now.ToString("_yyyyMMdd_HHmmss");
                 string extractPath = "tmp";
-                ZipHelper zh = new ZipHelper(extractPath, inputName, logName);
-                Log("start extracting " + inputName, logName);
+                ZipHelper zh = new ZipHelper(extractPath, opts.SourceName, logName);
+                Log("start extracting " + opts.SourceName, logName);
                 zh.ExtractFiles(new List<string> { "cat", "dll", "sys" });
-                await processFiles(extractPath, sigcheckDatas, resultName, logName);
+                await processFiles(extractPath, sigcheckDatas, opts.OutputName, logName);
 
                 if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
             }
             else
             {
-                string drvPath = inputName;
-                string rgxDrvPath = @"\\.+\\";
-                inputName = inputName.TrimEnd('\\');
-                Match match = Regex.Match(inputName, rgxDrvPath);
-                if (match.Success)
-                {
-                    inputName = inputName.Substring(match.Index + match.Length);
-                }
-                else
-                {
-                    inputName = inputName.Substring(inputName.IndexOf('\\')  + 1);
-                }
-                resultName = inputName + DateTime.Now.ToString("_yyyyMMdd_HHmmss");
-                await processFiles(drvPath, sigcheckDatas, resultName, logName);
+                await processFiles(opts.SourceName, sigcheckDatas, opts.OutputName, logName);
             }
 
             Log("### end ###", logName);
+            return 0;
+        }
+        private static Options parseParameter(string[] args)
+        {
+            Options options = new Options();
+            string helpStr =
+                    "command examples:\n" +
+                    "command1: signingcheck -p path\\drv_name.zip\n" +
+                    "command2: signingcheck -p path\\of\\driver\\directory\n\n" +
+                    "add -f for logs in folder\n" +
+                    "command3: signingcheck -f -p path\\drv_name.zip\n" +
+                    "command4: signingcheck -f -p path\\of\\driver\\directory";
+            if (args.Length < 1)
+            {
+                Console.WriteLine(helpStr);
+                Environment.Exit(1);
+            }
+            options.Build(args);
+            if (string.IsNullOrEmpty(options.SourceName))
+            {
+                Console.WriteLine(helpStr);
+                Environment.Exit(1);
+            }
+            logName = "signDrvCheck" + DateTime.Now.ToString("_yyyyMMdd_HHmmss") + ".log";
+            return options;
         }
         private async static Task processFiles(string drvPath, List<SigcheckData> sigcheckDatas, string resultName, string logName)
         {
@@ -78,7 +83,7 @@ namespace SigningCheck
             }
             else
             {
-                Log("Can't find cat, dll, sys files in this zip.", logName, true, true);
+                Log("Can't find cat, dll, sys files in this driver package.", logName, true, true);
             }
         }
         private async static Task getSigningChain(List<string> extensions, List<SigcheckData> sigcheckDatas, string drvPath, string resultName, string logName)

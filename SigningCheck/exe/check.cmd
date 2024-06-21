@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 set "dir_to_process=drv"
 
 :: Command to execute
-set "command=signingcheck.exe"
+set "command=signingcheck.exe -f -p"
 
 :: Check if directory exists
 if not exist "%dir_to_process%" (
