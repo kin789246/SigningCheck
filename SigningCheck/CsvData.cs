@@ -93,9 +93,9 @@ namespace SigningCheck
             this.sigcheckData = sigcheckData;
             this.osversion = new List<(string, bool)>(osv);
         }
-        public void GenerateOutput()
+        public void GenerateOutput(Dictionary<string, string> dl_sy_)
         {
-            name = Path.GetFileName(sigcheckData.FileName);
+            name = checkExpandName(dl_sy_);
             filePath = Path.GetDirectoryName(sigcheckData.FileName);
             if (string.Equals(sigcheckData.SigningType, "PreProd", System.StringComparison.OrdinalIgnoreCase))
             {
@@ -159,7 +159,19 @@ namespace SigningCheck
 
             summary = getSummary();
         }
+        private string checkExpandName(Dictionary<string, string> dl_sy_Name)
+        {
+            string name = Path.GetFileName(sigcheckData.FileName);
+            foreach (var item in dl_sy_Name)
+            {
+                if (item.Key.Contains(name))
+                {
+                    return Path.GetFileName(item.Value);
+                }
+            }
 
+            return name;
+        }
         private string getSummary()
         {
             StringBuilder summBuilder = new StringBuilder();

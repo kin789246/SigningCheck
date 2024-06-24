@@ -16,7 +16,7 @@ namespace SigningCheck
             string rgxType = @"SigningType: *";
 
             SigcheckData sc = new SigcheckData();
-            while (!string.IsNullOrEmpty(line))
+            while (line != null)
             {
                 if (Regex.IsMatch(line, rgxPath))
                 {

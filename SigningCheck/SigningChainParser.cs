@@ -17,7 +17,7 @@ namespace SigningCheck
             SignerData signer = new SignerData();
             Match match;
             string line = sr.ReadLine();
-            while (!string.IsNullOrEmpty(line))
+            while (line != null)
             {
                 if (Regex.IsMatch(line, rgxPath))
                 {
@@ -40,7 +40,7 @@ namespace SigningCheck
                             sc.FileName = line;
                         }
                         line = sr.ReadLine();
-                        while (!line.Contains("MachineType:") && !string.IsNullOrEmpty(line))
+                        while (!line.Contains("MachineType:") && line != null)
                         {
                             if (line.Contains("Signing date:"))
                             {

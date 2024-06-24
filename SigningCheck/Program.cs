@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace SigningCheck
 {
@@ -11,7 +9,8 @@ namespace SigningCheck
     {
         private static string logName;
         private static Options opts;
-        static async Task<int> Main(string[] args)
+        private static Dictionary<string, string> dllsysToDel = new Dictionary<string, string>(); 
+        static int Main(string[] args)
         {
             Console.WriteLine(Version + " by Kin|Jiaching");
             opts = parseParameter(args);
@@ -22,18 +21,26 @@ namespace SigningCheck
                 string extractPath = "tmp";
                 ZipHelper zh = new ZipHelper(extractPath, opts.SourceName, logName);
                 Log("start extracting " + opts.SourceName, logName);
-                zh.ExtractFiles(new List<string> { "cat", "dll", "sys" });
-                await processFiles(extractPath, sigcheckDatas, opts.OutputName, logName);
+                zh.ExtractFiles(new List<string> { "cat", "dll", "sys", "dl_", "sy_" });
+                processFiles(extractPath, sigcheckDatas, opts.OutputName, logName);
 
                 if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
             }
             else
             {
-                await processFiles(opts.SourceName, sigcheckDatas, opts.OutputName, logName);
+                processFiles(opts.SourceName, sigcheckDatas, opts.OutputName, logName);
+                clearExpanded();
             }
 
             Log("### end ###", logName);
             return 0;
+        }
+        private static void clearExpanded()
+        {
+            foreach (var name in dllsysToDel)
+            {
+                File.Delete(name.Key);
+            }
         }
         private static Options parseParameter(string[] args)
         {
@@ -56,27 +63,29 @@ namespace SigningCheck
                 Console.WriteLine(helpStr);
                 Environment.Exit(1);
             }
-            logName = "signDrvCheck" + DateTime.Now.ToString("_yyyyMMdd_HHmmss") + ".log";
+            logName = options.OutputName + "_SigningCheck.log";
             return options;
         }
-        private async static Task processFiles(string drvPath, List<SigcheckData> sigcheckDatas, string resultName, string logName)
+        private static void processFiles(string drvPath, List<SigcheckData> sigcheckDatas, string resultName, string logName)
         {
             drvPath = Path.GetFullPath(drvPath);
             if (Directory.Exists(drvPath))
             {
                 Log("start parsing", logName);
-                SigcheckHelper sigcheckHelper = new SigcheckHelper();
 
-                Log("get dump for cat filels", logName);
-                string dumplog = await sigcheckHelper.DumpContent(drvPath + "\\*.cat");
+                Log("get dump for cat files", logName);
+                string dumpCmd = "exe\\sigcheck.exe /accepteula -d -s " + drvPath + "\\*.cat";
+                string dumplog = CmdHelper.Run(dumpCmd);
                 string dumpName = resultName + "_dump.log";
                 Log(dumplog, dumpName, false);
                 Log("dump is saved to " + dumpName, logName);
                 Log("parsing dump", logName);
                 DumpParser.ParseDump(dumplog, sigcheckDatas, drvPath);
 
+                expandDl_Sy_(drvPath);
+
                 Log("get signing chain", logName);
-                await getSigningChain(new List<string> { "cat", "dll", "sys" }, sigcheckDatas, drvPath, resultName, logName);
+                getSigningChain(new List<string> { "cat", "dll", "sys" }, sigcheckDatas, drvPath, resultName, logName);
 
                 generateCSV(resultName, sigcheckDatas);
                 Log("Summary is saved to " + resultName + ".csv and " + resultName + ".html", logName, true, true);
@@ -86,12 +95,41 @@ namespace SigningCheck
                 Log("Can't find cat, dll, sys files in this driver package.", logName, true, true);
             }
         }
-        private async static Task getSigningChain(List<string> extensions, List<SigcheckData> sigcheckDatas, string drvPath, string resultName, string logName)
+        private static void expandDl_Sy_(string drvPath)
+        {
+            Dictionary<string, string> exts = new Dictionary<string, string>();
+            exts.Add(".dl_", ".dll");
+            exts.Add(".sy_", ".sys");
+            string expandLog = opts.OutputName + "_expand.log";
+            string[] fileEntries = Directory.GetFiles(drvPath);
+            foreach (string fileName in fileEntries)
+            {
+                foreach (string ext in exts.Keys)
+                {
+                    if (ext == Path.GetExtension(fileName))
+                    {
+                        Log("Expand " + fileName, expandLog);
+                        string dest = Path.GetFileNameWithoutExtension(fileName) + exts[ext];
+                        dest = Path.Combine(Path.GetDirectoryName(fileName), dest);
+                        string r = CmdHelper.Run("expand " + fileName + " " + dest);
+                        dllsysToDel.Add(dest, fileName);
+                        Log(r, expandLog);
+                    }
+                }
+            }
+            // Recurse into subdirectories of this directory.
+            string[] subdirectoryEntries = Directory.GetDirectories(drvPath);
+            foreach (string subdirectory in subdirectoryEntries)
+            {
+                expandDl_Sy_(subdirectory);
+            }
+        }
+        private static void getSigningChain(List<string> extensions, List<SigcheckData> sigcheckDatas, string drvPath, string resultName, string logName)
         {
             foreach (var ext in extensions)
             {
-                SigcheckHelper sigcheckHelper = new SigcheckHelper();
-                string signingChain = await sigcheckHelper.GetSiningChain(drvPath + "\\*." + ext);
+                string scCmd = "exe\\sigcheck /accepteula -i -s " + "\"" + drvPath + "\\*." + ext + "\"";
+                string signingChain = CmdHelper.Run(scCmd);
                 string chainName = resultName + "_signingChain.log";
                 Log(signingChain, chainName, false);
                 Log(ext + " files signing chain information is saved to " + chainName, logName);
@@ -118,12 +156,12 @@ namespace SigningCheck
             foreach (var item in sigcheckDatas)
             {
                 CsvData output = new CsvData(item, osVersion);
-                output.GenerateOutput();
+                output.GenerateOutput(dllsysToDel);
                 csvOutData.Data.Add(output);
             }
 
             //sort by file path
-            csvOutData.Data = csvOutData.Data.OrderBy(x => x.FilePath).ToList<CsvData>();
+            //csvOutData.Data = csvOutData.Data.OrderBy(x => x.FilePath).ToList<CsvData>();
 
             Log(csvOutData.ToCsvString(), fileName + ".csv", false);
             Log(HtmlHelper.ToHtmlTable(csvOutData), fileName + ".html", false);
