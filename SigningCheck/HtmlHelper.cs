@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace SigningCheck
 {
@@ -19,16 +18,21 @@ namespace SigningCheck
         private const string endTagTr = @"</tr>";
         private const string tagTd = @"<td>";
         private const string endTagTd = @"</td>";
-        private const string tagBr = @"<br />";
         private const string tagStyle = @"<style>";
         private const string tagScript = @"<script>";
 
         private const string styleName = "config\\style.css";
         private const string scriptName = "config\\main.js";
 
-        private static void addStringToTd(StringBuilder sb, string str)
+        private static void addStringToTd(StringBuilder sb, string str, string className="")
         {
-            sb.Append(tagTd);
+            if (className != "") {
+                sb.Append("<td class='" + className + "'>");
+            }
+            else
+            {
+                sb.Append(tagTd);
+            }
             sb.Append(str);
             sb.Append(endTagTd);
         }
@@ -41,66 +45,74 @@ namespace SigningCheck
         private static string makeTable(CsvOutData data)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(tagH1).Append(data.Summary).Append(endTagH1);
-
+            sb.Append("<div id='summary-block'>\n");
+            sb.Append(tagH1).Append(data.Summary).Append(endTagH1).Append("\n</div>\n");
+            //div for display options
+            sb.Append("<div id='displayOptions'></div>\n");
             //table part
-            sb.Append(tagTable);
+            sb.Append("<div id='results'>\n");
+            sb.Append(tagTable).Append("\n");
             sb.Append(tagTr);
-            //NO.,Name,Summary,Path,PreProd,Attestation,TestSigning,WHQL,24H2,22H2,21H2,OtherOS,Expiry,Signers{FileName||ValidUsages||SigningDate||ValidFrom||ValidTo}
-            sb.Append(tagTh).Append("NO.").Append(endTagTh);
+            //NO.,Name,Summary,Path,PreProd,Attestation,TestSigning,WHQL,24H2,22H2,21H2,OtherOS,Expiry,Signers{Signer||ValidUsages||SigningDate||ValidFrom||ValidTo}
+            sb.Append("<th class='sticky'>No.").Append(endTagTh);
+            string[] adjustable = ["Path", "Other", "Signers"];
+            string[] stickys = ["Name", "Summary"];
             foreach (var item in data.Title.Split(','))
             {
-                sb.Append(tagTh).Append(item).Append(endTagTh);
+                string addClass = "";
+                string addId = "";
+                foreach (var adjust in adjustable)
+                {
+                    if (item.Contains(adjust))
+                    {
+                        addClass = " class='" + adjust + "-column'";
+                    }
+                }
+                foreach (var sticky in stickys)
+                {
+                    if (item.Contains(sticky))
+                    {
+                        addClass = " class='sticky'";
+                        addId = " id='" + sticky + "-column'";
+                    }
+                }
+                
+                sb.Append("<th" + addId + addClass + ">");
+                sb.Append(item).Append(endTagTh);
             }
-            sb.Append(endTagTr);
+            sb.Append(endTagTr).Append("\n");
             int i = 1;
-            string rgxVbar = @"\w+\|\w";
             foreach (var csvData in data.Data)
             {
                 sb.Append(tagTr);
-                addStringToTd(sb, i.ToString()); i++;
-                addStringToTd(sb, csvData.Name);
-                addStringToTd(sb, csvData.Summary);
-                addStringToTd(sb, csvData.FilePath);
+                addStringToTd(sb, i.ToString(), "sticky"); i++;
+                addStringToTd(sb, csvData.Name, "sticky");
+                addStringToTd(sb, csvData.Summary, "sticky");
+                addStringToTd(sb, csvData.FilePath, "Path-column");
                 addOToTd(sb, csvData.PreProd);
                 addOToTd(sb, csvData.Attestation);
                 addOToTd(sb, csvData.TestSigning);
                 addOToTd(sb, csvData.Whql);
-                foreach (var os in csvData.Osversion)
+                foreach (var os in csvData.OsVersion)
                 {
                     addOToTd(sb, os.Item2);
                 }
-                if (Regex.IsMatch(csvData.OtherOS, rgxVbar))
-                {
-                    string str = string.Empty;
-                    foreach (var os in csvData.OtherOS.Split('|'))
-                    {
-                        str += os + tagBr;
-                    }
-                    addStringToTd(sb, str);
-                }
-                else
-                {
-                    addStringToTd(sb, csvData.OtherOS);
-                }
+                addStringToTd(sb, csvData.OtherOS, "Other-column");
                 addStringToTd(sb, csvData.TsExpiryDate);
                 string preStr = string.Empty;
                 foreach (var signer in csvData.SigcheckData.Signers)
                 {
-                    //preStr += signer + tagBr;
-                    preStr += signer.Name + " {" + tagBr;
+                    preStr += signer.Name + " {";
                     foreach (var vu in signer.ValidUsages)
                     {
                         preStr += vu + ", ";
                     }
-                    preStr += tagBr +
-                        "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + tagBr +
-                        "}" + tagBr;
+                    preStr += "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + "}";
                 }
-                addStringToTd(sb, preStr);
-                sb.Append(endTagTr);
+                addStringToTd(sb, preStr, "Signers-column");
+                sb.Append(endTagTr).Append("\n");
             }
-            sb.Append(endTagTable);
+            sb.Append(endTagTable).Append("\n</div>\n");
             return sb.ToString();
 
         }
@@ -109,7 +121,12 @@ namespace SigningCheck
             StringBuilder sb = new StringBuilder();
             using (StreamReader sr = new StreamReader(name))
             {
-                sb.Append(sr.ReadToEnd());
+                string line = sr.ReadLine();
+                while (line != null)
+                {
+                    sb.Append(line).Append("\n");
+                    line = sr.ReadLine();
+                }
             }
             return sb.ToString();
         }
@@ -124,7 +141,11 @@ namespace SigningCheck
                     string line = sr.ReadLine();
                     while (line != null)
                     {
-                        sb.Append(line);
+                        sb.Append(line).Append("\n");
+                        if (line.Trim().Equals("<title>", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append(Program.Version + "\n");
+                        }
                         if (line.Trim().Equals(tagStyle, StringComparison.OrdinalIgnoreCase))
                         {
                             sb.Append(readFrom(styleName));

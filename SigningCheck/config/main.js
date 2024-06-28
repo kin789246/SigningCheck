@@ -9,11 +9,6 @@ function addUniqueValue(select, uniqueSet) {
         addOption(select, n);
     });
 }
-function removeAllChildren(element) {
-    while (element.hasChildNodes()) {
-        element.removeChild(element.firstChild);
-    }
-}
 function filterRows() {
     const tables = document.getElementsByTagName("table");
     const rows = tables[0].querySelectorAll("tr");
@@ -24,21 +19,21 @@ function filterRows() {
         const tdSummary = rows[i].getElementsByTagName("td")[2];
         let name = tdName.innerText.split('.').pop();
         let summary = tdSummary.innerText;
-        if (name.toUpperCase() === selectName.value.toUpperCase() &&
-            summary.toUpperCase() === selectSummary.value.toUpperCase()
-        ) {
-            rows[i].style.display = "";
+        let displayName = false;
+        let displaySummary = false;
+        if (name.toUpperCase() === selectName.value.toUpperCase() ||
+            selectName.value === "all") {
+            displayName = true;
         }
-        else if (selectName.value === "all" &&
-            summary.toUpperCase() === selectSummary.value.toUpperCase()) {
-            rows[i].style.display = "";
+        if (summary.toUpperCase() === selectSummary.value.toUpperCase() ||
+            selectSummary.value === "all") {
+            displaySummary = true;
         }
-        else if (name.toUpperCase() === selectName.value.toUpperCase() &&
-            selectSummary.value === "all"
-        ) {
-            rows[i].style.display = "";
+        if (selectSummary.value === "non-WHQL" &&
+            summary.toUpperCase() != "WHQL SIGNED") {
+            displaySummary = true;
         }
-        else if (selectName.value === "all" && selectSummary.value === "all") {
+        if (displayName && displaySummary) {
             rows[i].style.display = "";
         }
         else {
@@ -69,32 +64,6 @@ function setUniqueOptions() {
     addUniqueValue(selectName, uniqueName);
     addUniqueValue(selectSummary, uniqueSummary);
 }
-function DoFilter() {
-    const tables = document.getElementsByTagName("table");
-    const heads = tables[0].getElementsByTagName("th");
-
-    //add select for Name and Summary
-    for (const head of heads) {
-        if (head.innerHTML === "Name") {
-            let select = document.createElement("select");
-            select.setAttribute("id", "selName");
-            select.setAttribute("title", "selName");
-            select.addEventListener("change", filterRows);
-            head.appendChild(select);
-            addOption(select, "all");
-        }
-        if (head.innerHTML === "Summary") {
-            let select = document.createElement("select");
-            select.setAttribute("id", "selSummary");
-            select.setAttribute("title", "selSummary");
-            select.addEventListener("change", filterRows);
-            head.appendChild(select);
-            addOption(select, "all");
-        }
-    }
-    setUniqueOptions();
-    addClassForCols("sticky", 3);
-}
 function updateStickyColumns() {
     const rows = document.querySelectorAll('tr');
     rows.forEach(row => {
@@ -104,14 +73,6 @@ function updateStickyColumns() {
             cell.style.left = leftOffset + 'px';
             leftOffset += Math.floor(cell.getBoundingClientRect().width) - 0.5;
         });
-    });
-}
-function addClassForCols(c, nCol) {
-    const rows = document.querySelectorAll('tr');
-    rows.forEach(tr => {
-        for (let i = 0; i < nCol; i++) {
-            tr.cells[i].className = c;
-        }
     });
 }
 function observeColumnChanges() {
@@ -128,7 +89,99 @@ function observeColumnChanges() {
         resizeObserver.observe(column);
     });
 }
+function toggleColumn(columnName, show) {
+    const elements = document.querySelectorAll('.' + columnName);
+    elements.forEach(element => {
+        element.style.display = show ? '' : 'none';
+    });
+}
+function addCheckbox(columnName, columnClass) {
+    const displayOptions = document.getElementById('displayOptions');
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = columnClass;
+    checkbox.className = 'toggle-column';
+    checkbox.dataset.column = columnName + '-column';
+    checkbox.checked = false;
+    checkbox.addEventListener('change', function () {
+        toggleColumn(columnName + '-column', this.checked);
+    });
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(` ${columnName}`));
+    displayOptions.appendChild(label);
+}
+function updateRowStickyTop() {
+    const tr1 = document.getElementsByTagName("tr");
+    const divFilter = document.getElementById("displayOptions");
+    const divFilterHeight = divFilter.getBoundingClientRect().height;
+    tr1[0].style.top = divFilterHeight + 'px';
+}
+function addFilter() {
+    let head = document.getElementById("Name-column");
+    let select = document.createElement("select");
+    select.setAttribute("id", "selName");
+    select.setAttribute("title", "selName");
+    select.addEventListener("change", filterRows);
+    head.appendChild(select);
+    addOption(select, "all");
+
+    head = document.getElementById("Summary-column");
+    select = document.createElement("select");
+    select.setAttribute("id", "selSummary");
+    select.setAttribute("title", "selSummary");
+    select.addEventListener("change", filterRows);
+    head.appendChild(select);
+    addOption(select, "all");
+    addOption(select, "non-WHQL");
+
+    setUniqueOptions();
+}
+// Add resizers to headers
+function addResizers() {
+    const headers = document.querySelectorAll('th');
+    headers.forEach(header => {
+        const resizer = document.createElement('div');
+        resizer.className = 'resizer';
+        header.appendChild(resizer);
+        initColumnResize(header, resizer);
+    });
+}
+function initColumnResize(col, resizer) {
+    let startX = 0;
+    let width = 0;
+    const mouseDownHandler = function (e) {
+        startX = e.clientX;
+        const styles = window.getComputedStyle(col);
+        width = parseInt(styles.width, 10);
+        document.addEventListener('mousemove', resizeColumn);
+        document.addEventListener('mouseup', stopResize);
+    };
+    const resizeColumn = function (e) {
+        const dx = e.clientX - startX;
+        col.style.width = `${width + dx}px`;
+    };
+    const stopResize = function () {
+        document.removeEventListener('mousemove', resizeColumn);
+        document.removeEventListener('mouseup', stopResize);
+    };
+    resizer.addEventListener('mousedown', mouseDownHandler);
+}
 document.addEventListener('DOMContentLoaded', function () {
-    observeColumnChanges();
-    DoFilter();
+    //observeColumnChanges();
+    addFilter();
+    addResizers();
+    // Define the columns to be toggled
+    const columnsToToggle = ['Path', 'Other', 'Signers'];
+    columnsToToggle.forEach(columnName => {
+        const columnClass = 'checkbox-' + columnName;
+        addCheckbox(columnName, columnClass);
+    });
+
+    // Initialize the columns visibility
+    document.querySelectorAll('.toggle-column').forEach(checkbox => {
+        toggleColumn(checkbox.dataset.column, checkbox.checked);
+    });
+
+    updateRowStickyTop();
 });

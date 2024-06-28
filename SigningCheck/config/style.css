@@ -1,10 +1,11 @@
 ﻿body {
     font-family: "Consolas";
+    font-size: 14px;
 }
 
 table {
     table-layout: fixed;
-    min-width: 100%;
+    width: 100%;
 }
 
 table, tr, td, th {
@@ -15,14 +16,34 @@ table, tr, td, th {
 }
 
 th, td {
+    position: relative;
     padding: 0.25em 0.5em 0.25em 0.5em;
     vertical-align: middle;
-    word-wrap: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.Path-column {
+    width: 20em;
+}
+
+.Signers-column {
+    width: 34em;
+}
+
+#Summary-column, #Name-column, .Other-column {
+    width: 10em;
+}
+
+#displayOptions {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: white;
 }
 
 tr:nth-child(1) {
     position: sticky;
-    top: 0;
     z-index: 1;
     background-color: #666;
     color: #fff;
@@ -33,6 +54,10 @@ th {
     color: #fff;
 }
 
+td {
+    overflow: hidden;
+}
+
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }
@@ -41,13 +66,8 @@ tr:nth-child(odd) {
     background-color: #fff;
 }
 
-td:nth-of-type(4) {
-    min-width: 15em;
-    max-width: 20em;
-}
-
 select {
-    max-width: 6em;
+    width: 6em;
 }
 
 th.sticky {
@@ -61,3 +81,18 @@ td.sticky {
     background-color: inherit;
     color: inherit;
 }
+
+.resizer {
+    width: 5px;
+    height: 100vw;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: col-resize;
+    user-select: none;
+}
+
+    .resizer:hover,
+    .resizing {
+        border-right: 2px solid gray;
+    }

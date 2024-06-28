@@ -39,7 +39,7 @@ namespace SigningCheck
                 sb.Append(item.Item1);
                 sb.Append(',');
             }
-            sb.Append("OtherOS,Expiry,Signers{Name||ValidUsages||SigningDate||ValidFrom||ValidTo}");
+            sb.Append("Other,Expiry,Signers{Signer||ValidUsages||SigningDate||ValidFrom||ValidTo}");
             title = sb.ToString();
         }
 
@@ -70,7 +70,7 @@ namespace SigningCheck
         private bool testSigning = false;
         private bool attestation = false;
         private bool whql = false;
-        private List<(string, bool)> osversion;
+        private List<(string, bool)> osVersion;
         private string otherOS = string.Empty;
         private string signerInfo = string.Empty;
         private string tsExpiryDate = string.Empty;
@@ -83,7 +83,7 @@ namespace SigningCheck
         public bool TestSigning { get { return testSigning; } }
         public bool Attestation { get { return attestation; } }
         public bool Whql { get { return whql; } }
-        public List<(string, bool)> Osversion { get { return osversion; } }
+        public List<(string, bool)> OsVersion { get { return osVersion; } }
         public string OtherOS { get { return otherOS; } }
         public string TsExpiryDate { get { return tsExpiryDate; } }
         public SigcheckData SigcheckData { get { return sigcheckData; } }
@@ -91,7 +91,7 @@ namespace SigningCheck
         public CsvData(SigcheckData sigcheckData, List<(string, bool)> osv)
         {
             this.sigcheckData = sigcheckData;
-            this.osversion = new List<(string, bool)>(osv);
+            this.osVersion = new List<(string, bool)>(osv);
         }
         public void GenerateOutput(Dictionary<string, string> dl_sy_)
         {
@@ -105,11 +105,11 @@ namespace SigningCheck
             foreach (var item in sigcheckData.OsSupport.Split(','))
             {
                 bool noOtherOS = false;
-                for (int i = 0; i < osversion.Count; i++)
+                for (int i = 0; i < osVersion.Count; i++)
                 {
-                    if (item.ToUpper().Contains(osversion[i].Item1))
+                    if (item.ToUpper().Contains(osVersion[i].Item1))
                     {
-                        osversion[i] = (osversion[i].Item1, true);
+                        osVersion[i] = (osVersion[i].Item1, true);
                         noOtherOS = true;
                     }
                 }
@@ -226,7 +226,7 @@ namespace SigningCheck
             if (whql) { sb.Append('O'); }
             sb.Append(',');
 
-            foreach (var item in osversion)
+            foreach (var item in osVersion)
             {
                 if (item.Item2)
                 {

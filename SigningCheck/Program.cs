@@ -137,7 +137,7 @@ namespace SigningCheck
                 SigningChainParser.ParseSigningChain(signingChain, sigcheckDatas, drvPath);
             }
         }
-        private static string Version
+        public static string Version
         {
             get
             {

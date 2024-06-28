@@ -1,3 +1,9 @@
+--- v1.7.1.0
+a) change filter algorithm 
+b) html can hide Path, OtherOS, Signers
+c) add filter non-WHQL
+d) add column resizable feature
+
 --- v1.7.0.0
 a) change execute sigcheck.exe and expand.exe methods
 b) add method to expand dl_ and sy_ files
