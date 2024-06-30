@@ -66,6 +66,7 @@ namespace SigningCheck
                     if (item.Contains(adjust))
                     {
                         addClass = " class='" + adjust + "-column'";
+                        break;
                     }
                 }
                 foreach (var sticky in stickys)
@@ -74,6 +75,7 @@ namespace SigningCheck
                     {
                         addClass = " class='sticky'";
                         addId = " id='" + sticky + "-column'";
+                        break;
                     }
                 }
                 
@@ -107,7 +109,7 @@ namespace SigningCheck
                     {
                         preStr += vu + ", ";
                     }
-                    preStr += "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + "}";
+                    preStr += "date:" + signer.SigningDate + "||from:" + signer.ValidFrom + "||to:" + signer.ValidTo + "} ";
                 }
                 addStringToTd(sb, preStr, "Signers-column");
                 sb.Append(endTagTr).Append("\n");

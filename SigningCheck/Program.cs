@@ -114,6 +114,7 @@ namespace SigningCheck
                         string r = CmdHelper.Run("expand " + fileName + " " + dest);
                         dllsysToDel.Add(dest, fileName);
                         Log(r, expandLog);
+                        break;
                     }
                 }
             }

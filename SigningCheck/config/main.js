@@ -64,38 +64,13 @@ function setUniqueOptions() {
     addUniqueValue(selectName, uniqueName);
     addUniqueValue(selectSummary, uniqueSummary);
 }
-function updateStickyColumns() {
-    const rows = document.querySelectorAll('tr');
-    rows.forEach(row => {
-        let leftOffset = 0;
-        const cells = row.querySelectorAll('.sticky');
-        cells.forEach(cell => {
-            cell.style.left = leftOffset + 'px';
-            leftOffset += Math.floor(cell.getBoundingClientRect().width) - 0.5;
-        });
-    });
-}
-function observeColumnChanges() {
-    const table = document.querySelector('table');
-    const columns = table.querySelectorAll('th');
-
-    const resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
-            updateStickyColumns();
-        }
-    });
-
-    columns.forEach(column => {
-        resizeObserver.observe(column);
-    });
-}
 function toggleColumn(columnName, show) {
     const elements = document.querySelectorAll('.' + columnName);
     elements.forEach(element => {
         element.style.display = show ? '' : 'none';
     });
 }
-function addCheckbox(columnName, columnClass) {
+function addCheckbox(columnName, columnClass, isCheck) {
     const displayOptions = document.getElementById('displayOptions');
     const label = document.createElement('label');
     const checkbox = document.createElement('input');
@@ -103,7 +78,7 @@ function addCheckbox(columnName, columnClass) {
     checkbox.id = columnClass;
     checkbox.className = 'toggle-column';
     checkbox.dataset.column = columnName + '-column';
-    checkbox.checked = false;
+    checkbox.checked = isCheck;
     checkbox.addEventListener('change', function () {
         toggleColumn(columnName + '-column', this.checked);
     });
@@ -111,11 +86,17 @@ function addCheckbox(columnName, columnClass) {
     label.appendChild(document.createTextNode(` ${columnName}`));
     displayOptions.appendChild(label);
 }
-function updateRowStickyTop() {
-    const tr1 = document.getElementsByTagName("tr");
+function updateStickyPosition() {
+    const rows = document.getElementsByTagName("tr");
     const divFilter = document.getElementById("displayOptions");
     const divFilterHeight = divFilter.getBoundingClientRect().height;
-    tr1[0].style.top = divFilterHeight + 'px';
+    rows[0].style.top = divFilterHeight + 'px';
+//    let leftOffset = 0;
+//    divFilter.childNodes.forEach(label => {
+//        let labelW = label.getBoundingClientRect().width;
+//        label.style.left = leftOffset + 'px';
+//        leftOffset += labelW;
+//    });
 }
 function addFilter() {
     let head = document.getElementById("Name-column");
@@ -167,15 +148,78 @@ function initColumnResize(col, resizer) {
     };
     resizer.addEventListener('mousedown', mouseDownHandler);
 }
+function createTips() {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    document.body.appendChild(tooltip);
+    document.querySelectorAll('td').forEach(cell => {
+        if (cell.classList.length != 0) {
+            cell.addEventListener('mouseenter', function (event) {
+                const content = cell.textContent.trim();
+                if (content.length > 0) {
+                    tooltip.textContent = content;
+                    tooltip.style.width = "";
+                    tooltip.style.display = 'block';
+                    const rect = cell.getBoundingClientRect();
+                        tooltip.style.width = `${rect.width - 14}px`;
+                    let rectTip = tooltip.getBoundingClientRect();
+                    let offsetX = 0;
+                    if (rect.width > rectTip.width) {
+                        offsetX = (rect.width - rectTip.width) / 2;
+                    }
+                    let leftVal = rect.left + window.scrollX + offsetX;
+                    if (rect.right > window.innerWidth) {
+                        leftVal -= rect.right - window.innerWidth + 36;
+                    }
+                    if (rect.left < 0) {
+                        leftVal = window.scrollX;
+                    }
+                    tooltip.style.left = `${leftVal}px`;
+                    tooltip.style.top = `${rect.top + window.scrollY}px`;
+                }
+            });
+            cell.addEventListener('mouseleave', function () {
+                tooltip.style.display = 'none';
+            });
+        }
+    });
+}
+function setColumnWidth() {
+    const headers = document.querySelectorAll('th');
+    const columnsToToggle = ['Name', 'Summary', 'Path', 'Other', 'Signers'];
+    headers.forEach(header => {
+        fitWidth = true;
+        for (col of columnsToToggle) {
+            if (header.textContent.includes(col)) {
+                fitWidth = false;
+                break;
+            }
+        }
+        if (fitWidth) {
+            const textLength = header.textContent.trim().length - 1;
+            header.style.width = `${textLength}em`;
+        }
+        if (header.textContent.includes("Expiry")) {
+            const textLength = header.textContent.trim().length;
+            header.style.width = `${textLength}em`;
+        }
+    });
+}
 document.addEventListener('DOMContentLoaded', function () {
-    //observeColumnChanges();
     addFilter();
     addResizers();
+    createTips();
+    setColumnWidth();
     // Define the columns to be toggled
     const columnsToToggle = ['Path', 'Other', 'Signers'];
     columnsToToggle.forEach(columnName => {
         const columnClass = 'checkbox-' + columnName;
-        addCheckbox(columnName, columnClass);
+        if (columnName === "Path") {
+            addCheckbox(columnName, columnClass, true);
+        }
+        else {
+            addCheckbox(columnName, columnClass, false);
+        }
     });
 
     // Initialize the columns visibility
@@ -183,5 +227,5 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleColumn(checkbox.dataset.column, checkbox.checked);
     });
 
-    updateRowStickyTop();
+    updateStickyPosition();
 });

@@ -115,10 +115,10 @@ namespace SigningCheck
                 }
                 if (!noOtherOS && !otherOS.Contains(item))
                 {
-                    otherOS += item + "|";
+                    otherOS += item + " ";
                 }
             }
-            otherOS = otherOS.TrimEnd('|');
+            otherOS = otherOS.TrimEnd(' ');
 
             StringBuilder signerBuilder = new StringBuilder();
             foreach (var signer in sigcheckData.Signers)

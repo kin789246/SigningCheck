@@ -52,6 +52,7 @@ namespace SigningCheck
                                     string desPath = Path.Combine(desDir, entry.Name);
                                     entry.ExtractToFile(desPath);
                                 }
+                                break;
                             }
                         }
                     }
