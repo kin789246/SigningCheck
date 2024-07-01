@@ -8,11 +8,13 @@ namespace SigningCheck
     {
         private bool logByDir = false;
         private bool isZip;
+        private bool logDetail = false;
         private string sourceName;
         private string outputName;
 
         public bool LogByDir { get { return logByDir; } }
         public bool IsZip { get { return isZip; } }
+        public bool LogDetail { get { return logDetail; } }
         public string SourceName { get { return sourceName; } }
         public string OutputName { get { return outputName; } }
 
@@ -57,6 +59,10 @@ namespace SigningCheck
                             outputName = outputName + DateTime.Now.ToString("_yyyyMMdd_HHmmss");
                         }
                     }
+                }
+                if (args[i] == "-v")
+                {
+                    logDetail = true;
                 }
                 i++;
             }

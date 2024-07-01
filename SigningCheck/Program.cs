@@ -14,13 +14,13 @@ namespace SigningCheck
         {
             Console.WriteLine(Version + " by Kin|Jiaching");
             opts = parseParameter(args);
-            Log("### " + Version + " ###", logName);
+            Log("### " + Version + " ###", logName, opts.LogDetail);
             List<SigcheckData> sigcheckDatas = new List<SigcheckData>();
             if (opts.IsZip)
             {
                 string extractPath = "tmp";
                 ZipHelper zh = new ZipHelper(extractPath, opts.SourceName, logName);
-                Log("start extracting " + opts.SourceName, logName);
+                Log("start extracting " + opts.SourceName, logName, opts.LogDetail);
                 zh.ExtractFiles(new List<string> { "cat", "dll", "sys", "dl_", "sy_" });
                 processFiles(extractPath, sigcheckDatas, opts.OutputName, logName);
 
@@ -32,7 +32,7 @@ namespace SigningCheck
                 clearExpanded();
             }
 
-            Log("### end ###", logName);
+            Log("### end ###", logName, opts.LogDetail);
             return 0;
         }
         private static void clearExpanded()
@@ -51,7 +51,8 @@ namespace SigningCheck
                     "command2: signingcheck -p path\\of\\driver\\directory\n\n" +
                     "add -f for logs in folder\n" +
                     "command3: signingcheck -f -p path\\drv_name.zip\n" +
-                    "command4: signingcheck -f -p path\\of\\driver\\directory";
+                    "command4: signingcheck -f -p path\\of\\driver\\directory\n\n" +
+                    "add -v for saving all detail logs";
             if (args.Length < 1)
             {
                 Console.WriteLine(helpStr);
@@ -71,28 +72,28 @@ namespace SigningCheck
             drvPath = Path.GetFullPath(drvPath);
             if (Directory.Exists(drvPath))
             {
-                Log("start parsing", logName);
+                Log("start parsing", logName, opts.LogDetail);
 
-                Log("get dump for cat files", logName);
+                Log("get dump for cat files", logName, opts.LogDetail);
                 string dumpCmd = "exe\\sigcheck.exe /accepteula -d -s " + drvPath + "\\*.cat";
                 string dumplog = CmdHelper.Run(dumpCmd);
                 string dumpName = resultName + "_dump.log";
-                Log(dumplog, dumpName, false);
-                Log("dump is saved to " + dumpName, logName);
-                Log("parsing dump", logName);
+                Log(dumplog, dumpName, opts.LogDetail, false);
+                Log("dump is saved to " + dumpName, logName, opts.LogDetail);
+                Log("parsing dump", logName, opts.LogDetail);
                 DumpParser.ParseDump(dumplog, sigcheckDatas, drvPath);
 
                 expandDl_Sy_(drvPath);
 
-                Log("get signing chain", logName);
+                Log("get signing chain", logName, opts.LogDetail);
                 getSigningChain(new List<string> { "cat", "dll", "sys" }, sigcheckDatas, drvPath, resultName, logName);
 
                 generateCSV(resultName, sigcheckDatas);
-                Log("Summary is saved to " + resultName + ".csv and " + resultName + ".html", logName, true, true);
+                Log("Summary is saved to " + resultName + ".csv and " + resultName + ".html", logName, opts.LogDetail, true, true);
             }
             else
             {
-                Log("Can't find cat, dll, sys files in this driver package.", logName, true, true);
+                Log("Can't find cat, dll, sys files in this driver package.", logName, opts.LogDetail, true, true);
             }
         }
         private static void expandDl_Sy_(string drvPath)
@@ -108,12 +109,12 @@ namespace SigningCheck
                 {
                     if (ext == Path.GetExtension(fileName))
                     {
-                        Log("Expand " + fileName, expandLog);
+                        Log("Expand " + fileName, expandLog, opts.LogDetail);
                         string dest = Path.GetFileNameWithoutExtension(fileName) + exts[ext];
                         dest = Path.Combine(Path.GetDirectoryName(fileName), dest);
                         string r = CmdHelper.Run("expand " + fileName + " " + dest);
                         dllsysToDel.Add(dest, fileName);
-                        Log(r, expandLog);
+                        Log(r, expandLog, opts.LogDetail);
                         break;
                     }
                 }
@@ -132,9 +133,9 @@ namespace SigningCheck
                 string scCmd = "exe\\sigcheck /accepteula -i -s " + "\"" + drvPath + "\\*." + ext + "\"";
                 string signingChain = CmdHelper.Run(scCmd);
                 string chainName = resultName + "_signingChain.log";
-                Log(signingChain, chainName, false);
-                Log(ext + " files signing chain information is saved to " + chainName, logName);
-                Log("parsing signing chain information for " + ext + " files", logName);
+                Log(signingChain, chainName, opts.LogDetail, false);
+                Log(ext + " files signing chain information is saved to " + chainName, logName, opts.LogDetail);
+                Log("parsing signing chain information for " + ext + " files", logName, opts.LogDetail);
                 SigningChainParser.ParseSigningChain(signingChain, sigcheckDatas, drvPath);
             }
         }
@@ -164,8 +165,8 @@ namespace SigningCheck
             //sort by file path
             //csvOutData.Data = csvOutData.Data.OrderBy(x => x.FilePath).ToList<CsvData>();
 
-            Log(csvOutData.ToCsvString(), fileName + ".csv", false);
-            Log(HtmlHelper.ToHtmlTable(csvOutData), fileName + ".html", false);
+            Log(csvOutData.ToCsvString(), fileName + ".csv", true, false);
+            Log(HtmlHelper.ToHtmlTable(csvOutData), fileName + ".html", true, false);
         }
 
         private static void loadOsCfg(string osCfgFile, List<(string, bool)> osVersion)
@@ -188,13 +189,16 @@ namespace SigningCheck
             }
         }
 
-        private static void Log(string message, string fileName, bool timeStamp = true, bool screen = false)
+        private static void Log(string message, string fileName, bool logDetail, bool timeStamp = true, bool screen = false)
         {
+            if (logDetail)
+            {
+                LogWriter.Log(message, fileName, timeStamp);
+            }
             if (screen)
             {
                 Console.WriteLine(message);
             }
-            LogWriter.Log(message, fileName, timeStamp);
         }
     }
 }
