@@ -1,3 +1,6 @@
+--- v1.8.1.0
+a) fix tip block over window edge issue
+
 --- v1.8.0.0
 a) add -v for saving all detail logs
 

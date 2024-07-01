@@ -91,12 +91,12 @@ function updateStickyPosition() {
     const divFilter = document.getElementById("displayOptions");
     const divFilterHeight = divFilter.getBoundingClientRect().height;
     rows[0].style.top = divFilterHeight + 'px';
-//    let leftOffset = 0;
-//    divFilter.childNodes.forEach(label => {
-//        let labelW = label.getBoundingClientRect().width;
-//        label.style.left = leftOffset + 'px';
-//        leftOffset += labelW;
-//    });
+    //    let leftOffset = 0;
+    //    divFilter.childNodes.forEach(label => {
+    //        let labelW = label.getBoundingClientRect().width;
+    //        label.style.left = leftOffset + 'px';
+    //        leftOffset += labelW;
+    //    });
 }
 function addFilter() {
     let head = document.getElementById("Name-column");
@@ -151,31 +151,42 @@ function initColumnResize(col, resizer) {
 function createTips() {
     const tooltip = document.createElement('div');
     tooltip.className = 'tooltip';
+    tooltip.id = 'ellipsis-tip';
     document.body.appendChild(tooltip);
     document.querySelectorAll('td').forEach(cell => {
         if (cell.classList.length != 0) {
-            cell.addEventListener('mouseenter', function (event) {
+            cell.addEventListener('mouseover', function (event) {
                 const content = cell.textContent.trim();
                 if (content.length > 0) {
                     tooltip.textContent = content;
-                    tooltip.style.width = "";
                     tooltip.style.display = 'block';
                     const rect = cell.getBoundingClientRect();
-                        tooltip.style.width = `${rect.width - 14}px`;
+                    tooltip.style.width = `${rect.width - 14}px`;
                     let rectTip = tooltip.getBoundingClientRect();
                     let offsetX = 0;
                     if (rect.width > rectTip.width) {
                         offsetX = (rect.width - rectTip.width) / 2;
                     }
                     let leftVal = rect.left + window.scrollX + offsetX;
-                    if (rect.right > window.innerWidth) {
-                        leftVal -= rect.right - window.innerWidth + 36;
+                    let topVal = rect.top + window.scrollY;
+                    tooltip.style.left = `${leftVal}px`;
+                    tooltip.style.top = `${topVal}px`;
+                    //reload the position of tool tip
+                    rectTip = tooltip.getBoundingClientRect();
+                    if (rectTip.right > window.innerWidth) {
+                        leftVal -= rectTip.right - window.innerWidth;
                     }
-                    if (rect.left < 0) {
+                    if (rectTip.left < 0) {
                         leftVal = window.scrollX;
                     }
+                    if (rectTip.top < 0) {
+                        topVal = window.scrollY;
+                    }
+                    if (rectTip.bottom > window.innerHeight) {
+                        topVal -= rectTip.bottom - window.innerHeight + 30;
+                    }
                     tooltip.style.left = `${leftVal}px`;
-                    tooltip.style.top = `${rect.top + window.scrollY}px`;
+                    tooltip.style.top = `${topVal}px`;
                 }
             });
             cell.addEventListener('mouseleave', function () {
