@@ -93,8 +93,9 @@ select {
 .tooltip {
     display: none;
     position: absolute;
-    background-color: #777;
-    color: whitesmoke;
+    background-color: #f2f2f2;
+    border: 0.1em solid #000000;
+    color: #305496;
     padding: 5px;
     z-index: 1;
     word-break: break-word;
@@ -103,4 +104,16 @@ select {
     min-width: 8em;
     text-align: center;
     pointer-events: none; /* Make tooltip non-interactive */
+}
+
+th.sticky {
+    position: sticky;
+    background-color: #666;
+    color: #fff;
+}
+
+td.sticky {
+    position: sticky;
+    background-color: inherit;
+    color: inherit;
 }

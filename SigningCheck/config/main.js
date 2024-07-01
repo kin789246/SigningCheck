@@ -91,42 +91,12 @@ function updateStickyPosition() {
     const divFilter = document.getElementById("displayOptions");
     const divFilterHeight = divFilter.getBoundingClientRect().height;
     rows[0].style.top = divFilterHeight + 'px';
-    //    let leftOffset = 0;
-    //    divFilter.childNodes.forEach(label => {
-    //        let labelW = label.getBoundingClientRect().width;
-    //        label.style.left = leftOffset + 'px';
-    //        leftOffset += labelW;
-    //    });
-}
-function addFilter() {
-    let head = document.getElementById("Name-column");
-    let select = document.createElement("select");
-    select.setAttribute("id", "selName");
-    select.setAttribute("title", "selName");
-    select.addEventListener("change", filterRows);
-    head.appendChild(select);
-    addOption(select, "all");
-
-    head = document.getElementById("Summary-column");
-    select = document.createElement("select");
-    select.setAttribute("id", "selSummary");
-    select.setAttribute("title", "selSummary");
-    select.addEventListener("change", filterRows);
-    head.appendChild(select);
-    addOption(select, "all");
-    addOption(select, "non-WHQL");
-
-    setUniqueOptions();
-}
-// Add resizers to headers
-function addResizers() {
-    const headers = document.querySelectorAll('th');
-    headers.forEach(header => {
-        const resizer = document.createElement('div');
-        resizer.className = 'resizer';
-        header.appendChild(resizer);
-        initColumnResize(header, resizer);
-    });
+    //let leftOffset = 0;
+    //divFilter.childNodes.forEach(label => {
+    //    let labelW = label.getBoundingClientRect().width;
+    //    label.style.left = leftOffset + 'px';
+    //    leftOffset += labelW;
+    //});
 }
 function initColumnResize(col, resizer) {
     let startX = 0;
@@ -148,79 +118,7 @@ function initColumnResize(col, resizer) {
     };
     resizer.addEventListener('mousedown', mouseDownHandler);
 }
-function createTips() {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip';
-    tooltip.id = 'ellipsis-tip';
-    document.body.appendChild(tooltip);
-    document.querySelectorAll('td').forEach(cell => {
-        if (cell.classList.length != 0) {
-            cell.addEventListener('mouseover', function (event) {
-                const content = cell.textContent.trim();
-                if (content.length > 0) {
-                    tooltip.textContent = content;
-                    tooltip.style.display = 'block';
-                    const rect = cell.getBoundingClientRect();
-                    tooltip.style.width = `${rect.width - 14}px`;
-                    let rectTip = tooltip.getBoundingClientRect();
-                    let offsetX = 0;
-                    if (rect.width > rectTip.width) {
-                        offsetX = (rect.width - rectTip.width) / 2;
-                    }
-                    let leftVal = rect.left + window.scrollX + offsetX;
-                    let topVal = rect.top + window.scrollY;
-                    tooltip.style.left = `${leftVal}px`;
-                    tooltip.style.top = `${topVal}px`;
-                    //reload the position of tool tip
-                    rectTip = tooltip.getBoundingClientRect();
-                    if (rectTip.right > window.innerWidth) {
-                        leftVal -= rectTip.right - window.innerWidth;
-                    }
-                    if (rectTip.left < 0) {
-                        leftVal = window.scrollX;
-                    }
-                    if (rectTip.top < 0) {
-                        topVal = window.scrollY;
-                    }
-                    if (rectTip.bottom > window.innerHeight) {
-                        topVal -= rectTip.bottom - window.innerHeight + 30;
-                    }
-                    tooltip.style.left = `${leftVal}px`;
-                    tooltip.style.top = `${topVal}px`;
-                }
-            });
-            cell.addEventListener('mouseleave', function () {
-                tooltip.style.display = 'none';
-            });
-        }
-    });
-}
-function setColumnWidth() {
-    const headers = document.querySelectorAll('th');
-    const columnsToToggle = ['Name', 'Summary', 'Path', 'Other', 'Signers'];
-    headers.forEach(header => {
-        fitWidth = true;
-        for (col of columnsToToggle) {
-            if (header.textContent.includes(col)) {
-                fitWidth = false;
-                break;
-            }
-        }
-        if (fitWidth) {
-            const textLength = header.textContent.trim().length - 1;
-            header.style.width = `${textLength}em`;
-        }
-        if (header.textContent.includes("Expiry")) {
-            const textLength = header.textContent.trim().length;
-            header.style.width = `${textLength}em`;
-        }
-    });
-}
-document.addEventListener('DOMContentLoaded', function () {
-    addFilter();
-    addResizers();
-    createTips();
-    setColumnWidth();
+function setDisplayOptions() {
     // Define the columns to be toggled
     const columnsToToggle = ['Path', 'Other', 'Signers'];
     columnsToToggle.forEach(columnName => {
@@ -237,6 +135,128 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.toggle-column').forEach(checkbox => {
         toggleColumn(checkbox.dataset.column, checkbox.checked);
     });
+}
+function addOptionsForNameSummary() {
+    let head = document.getElementById("Name-column");
+    let select = document.createElement("select");
+    select.setAttribute("id", "selName");
+    select.setAttribute("title", "selName");
+    select.addEventListener("change", filterRows);
+    head.appendChild(select);
+    addOption(select, "all");
 
+    head = document.getElementById("Summary-column");
+    select = document.createElement("select");
+    select.setAttribute("id", "selSummary");
+    select.setAttribute("title", "selSummary");
+    select.addEventListener("change", filterRows);
+    head.appendChild(select);
+    addOption(select, "all");
+    addOption(select, "non-WHQL");
+}
+function setUpUI() {
+    addOptionsForNameSummary();
+
+    let uniqueName = new Set();
+    let uniqueSummary = new Set();
+    const rows = document.querySelectorAll("tr");
+    rows.forEach((row, idx) => {
+        if (idx == 0) {
+            const columnsToToggle = ['Name', 'Summary', 'Path', 'Other', 'Signers'];
+            const headers = row.querySelectorAll('th');
+            headers.forEach(header => {
+                //add resizer for resizable columns
+                const resizer = document.createElement('div');
+                resizer.className = 'resizer';
+                header.appendChild(resizer);
+                initColumnResize(header, resizer);
+
+                //set column width to fit content
+                fitWidth = true;
+                for (col of columnsToToggle) {
+                    if (header.textContent.includes(col)) {
+                        fitWidth = false;
+                        break;
+                    }
+                }
+                if (fitWidth) {
+                    const textLength = header.textContent.trim().length - 1;
+                    header.style.width = `${textLength}em`;
+                }
+                if (header.textContent.includes("Expiry")) {
+                    const textLength = header.textContent.trim().length;
+                    header.style.width = `${textLength}em`;
+                }
+            });
+        }
+        if (idx > 0) {
+            //get unique content for filter
+            if (row.style.display == "none") {
+                return;
+            }
+            const columns = row.querySelectorAll("td");
+            uniqueName.add(columns[1].innerHTML.split('.').pop());
+            uniqueSummary.add(columns[2].innerHTML);
+
+            //create tips for overflow content
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.id = 'ellipsis-tip';
+            document.body.appendChild(tooltip);
+            columns.forEach((cell, idx) => {
+                if (cell.classList.length != 0 && idx != 0) {
+                    cell.addEventListener('mouseover', function (event) {
+                        const content = cell.textContent.trim();
+                        if (content.length > 0) {
+                            tooltip.textContent = content;
+                            tooltip.style.display = 'block';
+                            const rect = cell.getBoundingClientRect();
+                            tooltip.style.width = `${rect.width - 14}px`;
+                            let rectTip = tooltip.getBoundingClientRect();
+                            let offsetX = 0;
+                            if (rect.width > rectTip.width) {
+                                offsetX = (rect.width - rectTip.width) / 2;
+                            }
+                            let leftVal = rect.left + window.scrollX + offsetX;
+                            let topVal = rect.bottom + window.scrollY;
+                            tooltip.style.left = `${leftVal}px`;
+                            tooltip.style.top = `${topVal}px`;
+                            //reload the position of tool tip
+                            rectTip = tooltip.getBoundingClientRect();
+                            let scrollBarOffset = 30;
+                            if (rectTip.right > window.innerWidth) {
+                                leftVal -= rectTip.right - window.innerWidth + scrollBarOffset;
+                            }
+                            if (rectTip.left < 0) {
+                                leftVal = window.scrollX;
+                            }
+                            tooltip.style.left = `${leftVal}px`;
+                            if (rectTip.top < 0) {
+                                topVal = window.scrollY;
+                            }
+                            if (rectTip.bottom + scrollBarOffset > window.innerHeight) {
+                                topVal = rect.top + window.scrollY - rectTip.height;
+                            }
+                            tooltip.style.top = `${topVal}px`;
+                        }
+                    });
+                    cell.addEventListener('mouseleave', function () {
+                        tooltip.style.display = 'none';
+                    });
+                }
+            });
+        }
+    });
+
+    //add unique content for filter
+    const selectName = document.getElementById("selName");
+    const selectSummary = document.getElementById("selSummary");
+    addUniqueValue(selectName, uniqueName);
+    addUniqueValue(selectSummary, uniqueSummary);
+
+    setDisplayOptions();
     updateStickyPosition();
+}
+document.addEventListener('DOMContentLoaded', function () {
+    setUpUI();
 });
