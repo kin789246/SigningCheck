@@ -41,29 +41,6 @@ function filterRows() {
         }
     }
 }
-function setUniqueOptions() {
-    //get unique value of Name and Summary
-    let uniqueName = new Set();
-    let uniqueSummary = new Set();
-    const tables = document.getElementsByTagName("table");
-    const rows = tables[0].querySelectorAll("tr");
-    for (let i = 1; i < rows.length; i++) {
-        if (rows[i].style.display == "none") {
-            continue;
-        }
-        const columns = rows[i].querySelectorAll("td");
-        //Name
-        uniqueName.add(columns[1].innerHTML.split('.').pop());
-        //Summary
-        uniqueSummary.add(columns[2].innerHTML);
-    }
-
-    //add options to Name and Summary selectors
-    const selectName = document.getElementById("selName");
-    const selectSummary = document.getElementById("selSummary");
-    addUniqueValue(selectName, uniqueName);
-    addUniqueValue(selectSummary, uniqueSummary);
-}
 function toggleColumn(columnName, show) {
     const elements = document.querySelectorAll('.' + columnName);
     elements.forEach(element => {
@@ -83,7 +60,7 @@ function addCheckbox(columnName, columnClass, isCheck) {
         toggleColumn(columnName + '-column', this.checked);
     });
     label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(` ${columnName}`));
+    label.appendChild(document.createTextNode(`${columnName}`));
     displayOptions.appendChild(label);
 }
 function updateStickyPosition() {
@@ -154,6 +131,29 @@ function addOptionsForNameSummary() {
     addOption(select, "all");
     addOption(select, "non-WHQL");
 }
+function addSingleLineCheckBox() {
+    const displayOptions = document.getElementById('displayOptions');
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = "single-line";
+    checkbox.className = 'signle-line';
+    checkbox.checked = true;
+    checkbox.addEventListener('change', function () {
+        const resultDiv = document.getElementById("results");
+        if (this.checked) {
+            resultDiv.style.whiteSpace = "nowrap";
+            resultDiv.style.wordBreak = "normal";
+        }
+        else {
+            resultDiv.style.whiteSpace = "normal";
+            resultDiv.style.wordBreak = "break-word";
+        }
+    });
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode("1Line"));
+    displayOptions.appendChild(label);
+}
 function setUpUI() {
     addOptionsForNameSummary();
 
@@ -180,7 +180,7 @@ function setUpUI() {
                     }
                 }
                 if (fitWidth) {
-                    const textLength = header.textContent.trim().length - 1;
+                    const textLength = header.textContent.trim().length;
                     header.style.width = `${textLength}em`;
                 }
                 if (header.textContent.includes("Expiry")) {
@@ -254,6 +254,7 @@ function setUpUI() {
     addUniqueValue(selectName, uniqueName);
     addUniqueValue(selectSummary, uniqueSummary);
 
+    addSingleLineCheckBox();
     setDisplayOptions();
     updateStickyPosition();
 }
