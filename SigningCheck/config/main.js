@@ -68,12 +68,12 @@ function updateStickyPosition() {
     const divFilter = document.getElementById("displayOptions");
     const divFilterHeight = divFilter.getBoundingClientRect().height;
     rows[0].style.top = divFilterHeight + 'px';
-    //let leftOffset = 0;
-    //divFilter.childNodes.forEach(label => {
-    //    let labelW = label.getBoundingClientRect().width;
-    //    label.style.left = leftOffset + 'px';
-    //    leftOffset += labelW;
-    //});
+    let leftOffset = 0;
+    divFilter.childNodes.forEach(label => {
+        let labelW = label.getBoundingClientRect().width;
+        label.style.left = `${leftOffset}px`;
+        leftOffset += labelW;
+    });
 }
 function initColumnResize(col, resizer) {
     let startX = 0;
@@ -154,6 +154,31 @@ function addSingleLineCheckBox() {
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode("1Line"));
     displayOptions.appendChild(label);
+}
+function updateStickyColumns() {
+    const rows = document.querySelectorAll('tr');
+    rows.forEach(row => {
+        let leftOffset = 0;
+        const cells = row.querySelectorAll('.sticky');
+        cells.forEach(cell => {
+            cell.style.left = leftOffset + 'px';
+            leftOffset += Math.floor(cell.getBoundingClientRect().width) - 0.5;
+        });
+    });
+}
+function observeColumnChanges() {
+    const table = document.querySelector('table');
+    const columns = table.querySelectorAll('th');
+
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            updateStickyColumns();
+        }
+    });
+
+    columns.forEach(column => {
+        resizeObserver.observe(column);
+    });
 }
 function setUpUI() {
     addOptionsForNameSummary();
@@ -263,4 +288,5 @@ function setUpUI() {
 }
 document.addEventListener('DOMContentLoaded', function () {
     setUpUI();
+    //observeColumnChanges();
 });

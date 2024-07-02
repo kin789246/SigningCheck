@@ -1,6 +1,7 @@
 ﻿body {
     font-family: "Consolas";
     font-size: 14px;
+    min-width: fit-content;
 }
 
 table {
@@ -40,7 +41,7 @@ td {
 #displayOptions {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
     background: white;
 }
 
@@ -50,7 +51,7 @@ td {
 
 tr:nth-child(1) {
     position: sticky;
-    z-index: 1;
+    z-index: 2;
     background-color: #666;
     color: #fff;
 }
@@ -109,10 +110,12 @@ th.sticky {
     position: sticky;
     background-color: #666;
     color: #fff;
+    z-index: 1;
 }
 
 td.sticky {
     position: sticky;
     background-color: inherit;
     color: inherit;
+    z-index: 1;
 }
