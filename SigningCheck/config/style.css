@@ -19,6 +19,9 @@ th, td {
     vertical-align: middle;
     text-align: center;
     text-overflow: ellipsis;
+}
+
+td {
     overflow: hidden;
 }
 

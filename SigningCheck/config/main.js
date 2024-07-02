@@ -96,7 +96,8 @@ function initColumnResize(col, resizer) {
     resizer.addEventListener('mousedown', mouseDownHandler);
 }
 function setDisplayOptions() {
-    // Define the columns to be toggled
+    addSingleLineCheckBox();
+
     const columnsToToggle = ['Path', 'Other', 'Signers'];
     columnsToToggle.forEach(columnName => {
         const columnClass = 'checkbox-' + columnName;
@@ -156,6 +157,8 @@ function addSingleLineCheckBox() {
 }
 function setUpUI() {
     addOptionsForNameSummary();
+    setDisplayOptions();
+    updateStickyPosition();
 
     let uniqueName = new Set();
     let uniqueSummary = new Set();
@@ -203,9 +206,13 @@ function setUpUI() {
             tooltip.className = 'tooltip';
             tooltip.id = 'ellipsis-tip';
             document.body.appendChild(tooltip);
+            const oneLineCB = document.getElementById("single-line");
             columns.forEach((cell, idx) => {
                 if (cell.classList.length != 0 && idx != 0) {
                     cell.addEventListener('mouseover', function (event) {
+                        if (oneLineCB.checked != true) {
+                            return;
+                        }
                         const content = cell.textContent.trim();
                         if (content.length > 0) {
                             tooltip.textContent = content;
@@ -253,10 +260,6 @@ function setUpUI() {
     const selectSummary = document.getElementById("selSummary");
     addUniqueValue(selectName, uniqueName);
     addUniqueValue(selectSummary, uniqueSummary);
-
-    addSingleLineCheckBox();
-    setDisplayOptions();
-    updateStickyPosition();
 }
 document.addEventListener('DOMContentLoaded', function () {
     setUpUI();

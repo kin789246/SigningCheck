@@ -1,3 +1,6 @@
+--- v1.8.4.0
+a) uncheck 1 line checkbox will turn off tips
+
 --- v1.8.3.0
 a) add single line view checkbox
 
