@@ -75,7 +75,7 @@ namespace SigningCheck
                 Log("start parsing", logName, opts.LogDetail);
 
                 Log("get dump for cat files", logName, opts.LogDetail);
-                string dumpCmd = "exe\\sigcheck.exe /accepteula -d -s " + drvPath + "\\*.cat";
+                string dumpCmd = "exe\\sigcheck.exe /accepteula -d -s \"" + drvPath + "\\*.cat\"";
                 string dumplog = CmdHelper.Run(dumpCmd);
                 string dumpName = resultName + "_dump.log";
                 Log(dumplog, dumpName, opts.LogDetail, false);
